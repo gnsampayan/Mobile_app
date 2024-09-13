@@ -26,6 +26,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingHorizontal: 8,
     color: COLORS.textColor,
+    backgroundColor: 'black',
   },
   inputContainer: {
     flexDirection: 'row',
@@ -96,6 +97,10 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: COLORS.editButtonBackgroundColor,
     borderRadius: 5,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 75,
   },
   leftAction: {
     backgroundColor: 'red', // Example color
@@ -106,6 +111,10 @@ const styles = StyleSheet.create({
   actionText: {
     color: 'white',
     fontWeight: 'bold',
+  },
+  normalText: {
+    fontWeight: 'normal',
+    color: 'white',
   },
 });
 

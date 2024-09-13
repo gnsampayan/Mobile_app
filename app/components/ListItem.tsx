@@ -49,24 +49,33 @@ const ListItem: React.FC<ListItemProps> = ({
     const [isEditing, setIsEditing] = useState(false);
     const [text, setText] = useState(item.key);
     const [isStruckThrough, setIsStruckThrough] = useState(false);
+    const [backgroundColor, setBackgroundColor] = useState(getColorForIndex(index, !!item.isObject, layerIndex.length));
     const textInputRef = useRef<TextInput>(null);
     const swipeableRef = useRef<Swipeable>(null);
 
     const { swipedItemId, setSwipedItemId } = useContext(SwipedItemContext);
 
     useEffect(() => {
-        const loadOpacity = async () => {
+        const loadState = async () => {
             try {
                 const savedOpacity = await AsyncStorage.getItem(`opacity-${item.id}`);
+                const savedStrikeThrough = await AsyncStorage.getItem(`strikeThrough-${item.id}`);
+                const savedBackgroundColor = await AsyncStorage.getItem(`backgroundColor-${item.id}`);
                 if (savedOpacity !== null) {
                     setOpacity(parseFloat(savedOpacity));
                 }
+                if (savedStrikeThrough !== null) {
+                    setIsStruckThrough(savedStrikeThrough === 'true');
+                }
+                if (savedBackgroundColor !== null) {
+                    setBackgroundColor(savedBackgroundColor);
+                }
             } catch (error) {
-                console.error('Failed to load opacity', error);
+                console.error('Failed to load state', error);
             }
         };
 
-        loadOpacity();
+        loadState();
     }, [item.id]);
 
     const handleSave = () => {
@@ -89,9 +98,31 @@ const ListItem: React.FC<ListItemProps> = ({
         setText(item.key); // Reset text to original value
     };
 
-    const handlePress = () => {
+    const handlePress = async () => {
         if (!item.isObject) {
-            setIsStruckThrough(!isStruckThrough);
+            const newIsStruckThrough = !isStruckThrough;
+            setIsStruckThrough(newIsStruckThrough);
+            const newBackgroundColor = newIsStruckThrough ? 'rgb(56,56,56)' : getColorForIndex(index, !!item.isObject, layerIndex.length);
+            setBackgroundColor(newBackgroundColor);
+
+            try {
+                await AsyncStorage.setItem(`strikeThrough-${item.id}`, newIsStruckThrough.toString());
+                await AsyncStorage.setItem(`backgroundColor-${item.id}`, newBackgroundColor);
+            } catch (error) {
+                console.error('Failed to save state', error);
+            }
+        } else {
+            // If the item is being transformed into a list object, clear the strike-through state
+            if (isStruckThrough) {
+                setIsStruckThrough(false);
+                setBackgroundColor(getColorForIndex(index, !!item.isObject, layerIndex.length));
+                try {
+                    await AsyncStorage.setItem(`strikeThrough-${item.id}`, 'false');
+                    await AsyncStorage.setItem(`backgroundColor-${item.id}`, getColorForIndex(index, !!item.isObject, layerIndex.length));
+                } catch (error) {
+                    console.error('Failed to save state', error);
+                }
+            }
         }
         toggleDropdown(item.id);
         if (swipedItemId && swipedItemId !== item.id && swipeableRef.current) {
@@ -132,7 +163,7 @@ const ListItem: React.FC<ListItemProps> = ({
                         onSwipeableClose={() => setSwipedItemId(null)} // Reset swipedItemId on close
                     >
                         <View
-                            style={[styles.listItem, item.isObject && styles.listObject, { backgroundColor: getColorForIndex(index, !!item.isObject, layerIndex.length), opacity }, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}
+                            style={[styles.listItem, item.isObject && styles.listObject, { backgroundColor, opacity }, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}
                         >
                             {isEditing ? (
                                 <TextInput
@@ -146,10 +177,18 @@ const ListItem: React.FC<ListItemProps> = ({
                                     selectTextOnFocus={true} // Highlight text on focus
                                 />
                             ) : (
-                                <Text
-                                    style={[item.isObject ? styles.listObjectText : styles.listItemText, isStruckThrough && { textDecorationLine: 'line-through', color: 'white' }]}
-                                >
-                                    {item.isObject && '=> '} {item.key} {item.isObject && `[${item.items ? item.items.length : 0}]`}
+                                <Text>
+                                    {item.isObject && (
+                                        <Text style={styles.normalText}>
+                                            [{item.items ? item.items.length : 0}]{' '}
+                                        </Text>
+                                    )}
+                                    <Text style={[
+                                        item.isObject ? styles.listObjectText : styles.listItemText,
+                                        isStruckThrough && { textDecorationLine: 'line-through' }
+                                    ]}>
+                                        {item.key}
+                                    </Text>
                                 </Text>
                             )}
                         </View>

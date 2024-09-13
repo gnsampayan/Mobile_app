@@ -1,13 +1,13 @@
 import { ITEMS_PER_COLOR_STEP_NESTED, ITEMS_PER_COLOR_STEP_LAYER } from '../constants/constants';
 
 const rainbowColors = [
-  { r: 255, g: 0, b: 0 },    // Red
-  { r: 255, g: 127, b: 0 },  // Orange
-  { r: 255, g: 255, b: 0 },  // Yellow
-  { r: 0, g: 255, b: 0 },    // Green
-  { r: 0, g: 0, b: 255 },    // Blue
-  { r: 75, g: 0, b: 130 },   // Indigo
-  { r: 148, g: 0, b: 211 }   // Violet
+  { r: 90, g: 0, b: 0 },    // Red
+  { r: 141, g: 81, b: 26 },  // Orange
+  { r: 173, g: 153, b: 45 },  // Yellow
+  { r: 17, g: 83, b: 19 },    // Green
+  { r: 44, g: 60, b: 100 },    // Blue
+  { r: 81, g: 52, b: 98 },   // Indigo
+  { r: 111, g: 49, b: 101 }   // Violet
 ];
 
 interface RGBColor {
