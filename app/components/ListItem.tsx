@@ -1,13 +1,11 @@
 import React, { useState, useEffect, useRef, useContext, createContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, FlatList } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Swipeable } from 'react-native-gesture-handler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ListItem as ListItemType } from '../types';
 import styles from '../../styles';
 import { getColorForIndex } from '../utils/colorUtils';
-import { TRANSPARENT_OPACITY } from '../constants/constants';
-import { Dimensions } from 'react-native';
 
 // Create a context to manage the currently swiped item
 const SwipedItemContext = createContext<{
@@ -30,6 +28,7 @@ interface ListItemProps {
     layerIndex: number[];
     handleEditItem: (id: string, newText: string) => void;
     deleteListItem: (id: string) => void;
+    flatListRef: React.RefObject<FlatList<any>>;
 }
 
 const ListItem: React.FC<ListItemProps> = ({
@@ -44,6 +43,7 @@ const ListItem: React.FC<ListItemProps> = ({
     layerIndex,
     handleEditItem,
     deleteListItem,
+    flatListRef,
 }) => {
     const [opacity, setOpacity] = useState(1);
     const [isEditing, setIsEditing] = useState(false);
@@ -51,6 +51,7 @@ const ListItem: React.FC<ListItemProps> = ({
     const [isStruckThrough, setIsStruckThrough] = useState(false);
     const [backgroundColor, setBackgroundColor] = useState(getColorForIndex(index, !!item.isObject, layerIndex.length));
     const textInputRef = useRef<TextInput>(null);
+    const nestedInputRef = useRef<TextInput>(null);
     const swipeableRef = useRef<Swipeable>(null);
 
     const { swipedItemId, setSwipedItemId } = useContext(SwipedItemContext);
@@ -85,7 +86,7 @@ const ListItem: React.FC<ListItemProps> = ({
 
     const handleEditPress = () => {
         if (swipeableRef.current) {
-            swipeableRef.current.close(); // Close the swipeable item
+            swipeableRef.current.close();
         }
         setIsEditing(true);
         setTimeout(() => {
@@ -93,41 +94,27 @@ const ListItem: React.FC<ListItemProps> = ({
                 textInputRef.current.focus();
                 textInputRef.current.setSelection(0, text.length);
             }
-        }, 100); // Delay to ensure the TextInput is rendered
+        }, 100);
     };
 
     const handleCancelEdit = () => {
         setIsEditing(false);
-        setText(item.key); // Reset text to original value
+        setText(item.key);
     };
 
     const handlePress = async () => {
-        if (!item.isObject) {
-            const newIsStruckThrough = !isStruckThrough;
-            setIsStruckThrough(newIsStruckThrough);
-            const newBackgroundColor = newIsStruckThrough ? 'rgb(56,56,56)' : getColorForIndex(index, !!item.isObject, layerIndex.length);
-            setBackgroundColor(newBackgroundColor);
+        const newIsStruckThrough = !isStruckThrough;
+        setIsStruckThrough(newIsStruckThrough);
+        const newBackgroundColor = newIsStruckThrough ? 'rgb(56,56,56)' : getColorForIndex(index, !!item.isObject, layerIndex.length);
+        setBackgroundColor(newBackgroundColor);
 
-            try {
-                await AsyncStorage.setItem(`strikeThrough-${item.id}`, newIsStruckThrough.toString());
-                await AsyncStorage.setItem(`backgroundColor-${item.id}`, newBackgroundColor);
-            } catch (error) {
-                console.error('Failed to save state', error);
-            }
-        } else {
-            // If the item is being transformed into a list object, clear the strike-through state
-            if (isStruckThrough) {
-                setIsStruckThrough(false);
-                setBackgroundColor(getColorForIndex(index, !!item.isObject, layerIndex.length));
-                try {
-                    await AsyncStorage.setItem(`strikeThrough-${item.id}`, 'false');
-                    await AsyncStorage.setItem(`backgroundColor-${item.id}`, getColorForIndex(index, !!item.isObject, layerIndex.length));
-                } catch (error) {
-                    console.error('Failed to save state', error);
-                }
-            }
+        try {
+            await AsyncStorage.setItem(`strikeThrough-${item.id}`, newIsStruckThrough.toString());
+            await AsyncStorage.setItem(`backgroundColor-${item.id}`, newBackgroundColor);
+        } catch (error) {
+            console.error('Failed to save state', error);
         }
-        toggleDropdown(item.id);
+
         if (swipedItemId && swipedItemId !== item.id && swipeableRef.current) {
             swipeableRef.current.close();
             setSwipedItemId(null);
@@ -143,6 +130,25 @@ const ListItem: React.FC<ListItemProps> = ({
 
     const handleSwipeableOpen = () => {
         setSwipedItemId(item.id);
+    };
+
+    const scrollToInput = (inputRef: React.RefObject<TextInput>) => {
+        setTimeout(() => {
+            if (flatListRef.current?.getNativeScrollRef() && inputRef.current) {
+                inputRef.current.measureLayout(
+                    flatListRef.current.getNativeScrollRef() as any,
+                    (y) => {
+                        flatListRef.current?.scrollToOffset({
+                            offset: y - 100,
+                            animated: true,
+                        });
+                    },
+                    () => {
+                        console.error('measureLayout failed');
+                    }
+                );
+            }
+        }, 100);
     };
 
     return (
@@ -163,10 +169,15 @@ const ListItem: React.FC<ListItemProps> = ({
                         )}
                         onSwipeableOpen={handleSwipeableOpen}
                         onSwipeableWillOpen={() => { }}
-                        onSwipeableClose={() => setSwipedItemId(null)} // Reset swipedItemId on close
+                        onSwipeableClose={() => setSwipedItemId(null)}
                     >
                         <View
-                            style={[styles.listItem, item.isObject && styles.listObject, { backgroundColor, opacity }, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}
+                            style={[
+                                styles.listItem,
+                                item.isObject && styles.listObject,
+                                { backgroundColor, opacity },
+                                { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+                            ]}
                         >
                             {isEditing ? (
                                 <TextInput
@@ -175,21 +186,25 @@ const ListItem: React.FC<ListItemProps> = ({
                                     value={text}
                                     onChangeText={setText}
                                     onSubmitEditing={handleSave}
-                                    onBlur={handleCancelEdit} // Cancel edit on blur
-                                    autoFocus={true} // Ensure keyboard is toggled
-                                    selectTextOnFocus={true} // Highlight text on focus
+                                    onBlur={handleCancelEdit}
+                                    autoFocus={true}
+                                    selectTextOnFocus={true}
+                                    onFocus={() => scrollToInput(textInputRef)}
                                 />
                             ) : (
                                 <Text>
                                     {item.isObject && (
-                                        <Text style={styles.normalText}>
+                                        <Text style={styles.normalText} onPress={() => toggleDropdown(item.id)}>
                                             [{item.items ? item.items.length : 0}]{' '}
                                         </Text>
                                     )}
-                                    <Text style={[
-                                        item.isObject ? styles.listObjectText : styles.listItemText,
-                                        isStruckThrough && { textDecorationLine: 'line-through' }
-                                    ]}>
+                                    <Text
+                                        style={[
+                                            item.isObject ? styles.listObjectText : styles.listItemText,
+                                            isStruckThrough && { textDecorationLine: 'line-through' },
+                                        ]}
+                                        onPress={() => item.isObject && toggleDropdown(item.id)} // Add onPress to toggle dropdown
+                                    >
                                         {item.key}
                                     </Text>
                                 </Text>
@@ -205,6 +220,8 @@ const ListItem: React.FC<ListItemProps> = ({
                                         value={nestedItemName[item.id] || ''}
                                         onChangeText={(text) => setNestedItemName({ ...nestedItemName, [item.id]: text })}
                                         onSubmitEditing={() => addNestedListItem(item.id)}
+                                        ref={nestedInputRef}
+                                        onFocus={() => scrollToInput(nestedInputRef)}
                                     />
                                     <Ionicons name="add-circle-outline" size={20} color="white" onPress={() => addNestedListItem(item.id)} />
                                 </View>
@@ -222,32 +239,13 @@ const ListItem: React.FC<ListItemProps> = ({
                                         layerIndex={[...layerIndex, nestedIndex]}
                                         handleEditItem={handleEditItem}
                                         deleteListItem={deleteListItem}
+                                        flatListRef={flatListRef}
                                     />
                                 ))}
                             </View>
                         )}
                     </Swipeable>
                 </TouchableOpacity>
-            </View>
-        </TouchableWithoutFeedback>
-    );
-};
-
-const ListApp: React.FC = () => {
-    const [swipedItemId, setSwipedItemId] = useState<string | null>(null);
-
-    const handleOutsidePress = () => {
-        if (swipedItemId) {
-            setSwipedItemId(null);
-        }
-    };
-
-    return (
-        <TouchableWithoutFeedback onPress={handleOutsidePress}>
-            <View style={{ flex: 1 }}>
-                <SwipedItemContext.Provider value={{ swipedItemId, setSwipedItemId }}>
-                    {/* Render your list of ListItem components here */}
-                </SwipedItemContext.Provider>
             </View>
         </TouchableWithoutFeedback>
     );

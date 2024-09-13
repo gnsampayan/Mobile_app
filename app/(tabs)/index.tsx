@@ -1,22 +1,31 @@
-import { useState } from 'react';
-import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, Alert } from 'react-native';
+import { useState, useRef } from 'react';
+import { SafeAreaView, View, Text, TouchableOpacity, TextInput, FlatList, Alert, KeyboardAvoidingView, Platform, } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import ListItem from '../components/ListItem';
-import { useListItems } from '../hooks/useListItems';
+import { useListItems } from '@/app/context/listItemsContext';
 import { generateUUID } from '../utils/uuid';
 import { ListItem as ListItemType } from '../types';
 import styles from '../../styles';
 import { ListRenderItem } from 'react-native';
+import { useActiveList } from '@/app/context/activeListContext';
 
 export default function HomeScreen() {
+  const { activeList } = useActiveList();
   const { listItems, setListItems, saveListItems } = useListItems();
+  const activeListItem = listItems.find(item => item.id === activeList) || { id: 'default', key: 'default', items: [] };
   const [newListItemName, setNewListItemName] = useState('');
   const [nestedItemName, setNestedItemName] = useState<{ [key: string]: string }>({});
+  const flatListRef = useRef<FlatList>(null);
 
   const addListItem = () => {
     if (newListItemName.trim()) {
       const newItem: ListItemType = { id: generateUUID(), key: newListItemName };
-      const updatedListItems = [...listItems, newItem];
+      const updatedListItems = listItems.map(item => {
+        if (item.id === activeList) {
+          return { ...item, items: [...(item.items || []), newItem] };
+        }
+        return item;
+      });
       setListItems(updatedListItems);
       saveListItems(updatedListItems);
       setNewListItemName('');
@@ -32,7 +41,7 @@ export default function HomeScreen() {
             const newNestedItem: ListItemType = { id: generateUUID(), key: nestedItemNameValue };
             return {
               ...item,
-              items: [...(item.items || []), newNestedItem]
+              items: [...(item.items || []), newNestedItem],
             };
           } else if (item.items) {
             return { ...item, items: recursivelyAddNestedItem(item.items) };
@@ -40,8 +49,13 @@ export default function HomeScreen() {
           return item;
         });
       };
-
-      const updatedListItems = recursivelyAddNestedItem(listItems);
+      const updatedActiveListItems = recursivelyAddNestedItem(activeListItem.items || []);
+      const updatedListItems = listItems.map(listItem => {
+        if (listItem.id === activeList) {
+          return { ...listItem, items: updatedActiveListItems };
+        }
+        return listItem;
+      });
       setListItems(updatedListItems);
       saveListItems(updatedListItems);
       setNestedItemName({ ...nestedItemName, [parentId]: '' });
@@ -50,14 +64,24 @@ export default function HomeScreen() {
 
   const deleteListItem = (id: string) => {
     const recursivelyDeleteNestedItems = (items: ListItemType[]): ListItemType[] => {
-      return items.map(item => {
-        if (item.items) {
-          item.items = recursivelyDeleteNestedItems(item.items);
-        }
-        return item;
-      }).filter(item => item.id !== id);
+      return items
+        .filter(item => item.id !== id)
+        .map(item => {
+          if (item.items) {
+            return { ...item, items: recursivelyDeleteNestedItems(item.items) };
+          }
+          return item;
+        });
     };
-    const updatedListItems = recursivelyDeleteNestedItems(listItems);
+
+    const updatedActiveListItems = recursivelyDeleteNestedItems(activeListItem.items || []);
+    const updatedListItems = listItems.map(listItem => {
+      if (listItem.id === activeList) {
+        return { ...listItem, items: updatedActiveListItems };
+      }
+      return listItem;
+    });
+
     setListItems(updatedListItems);
     saveListItems(updatedListItems);
   };
@@ -74,10 +98,18 @@ export default function HomeScreen() {
       });
     };
 
-    const updatedListItems = recursivelyClearChildren(listItems);
+    const updatedActiveListItems = recursivelyClearChildren(activeListItem.items || []);
+    const updatedListItems = listItems.map(listItem => {
+      if (listItem.id === activeList) {
+        return { ...listItem, items: updatedActiveListItems };
+      }
+      return listItem;
+    });
+
     setListItems(updatedListItems);
     saveListItems(updatedListItems);
   };
+
 
   const renderRightActions = (id: string) => (
     <TouchableOpacity style={styles.editButton} onPress={() => handleEditItem(id, '')}>
@@ -131,9 +163,16 @@ export default function HomeScreen() {
       });
     };
 
-    const updatedListItems = recursivelyConvertToListObject(listItems);
+    const updatedActiveListItems = recursivelyConvertToListObject(activeListItem.items || []);
+    const updatedListItems = listItems.map(listItem => {
+      if (listItem.id === activeList) {
+        return { ...listItem, items: updatedActiveListItems };
+      }
+      return listItem;
+    });
+
     setListItems(updatedListItems);
-    saveListItems(updatedListItems); // Save the updated list items to AsyncStorage
+    saveListItems(updatedListItems);
   };
 
   const toggleDropdown = (id: string) => {
@@ -148,7 +187,14 @@ export default function HomeScreen() {
       });
     };
 
-    const updatedListItems = recursivelyToggleDropdown(listItems);
+    const updatedActiveListItems = recursivelyToggleDropdown(activeListItem.items || []);
+    const updatedListItems = listItems.map(listItem => {
+      if (listItem.id === activeList) {
+        return { ...listItem, items: updatedActiveListItems };
+      }
+      return listItem;
+    });
+
     setListItems(updatedListItems);
   };
 
@@ -164,10 +210,18 @@ export default function HomeScreen() {
       });
     };
 
-    const updatedListItems = recursivelyEditItem(listItems);
+    const updatedActiveListItems = recursivelyEditItem(activeListItem.items || []);
+    const updatedListItems = listItems.map(listItem => {
+      if (listItem.id === activeList) {
+        return { ...listItem, items: updatedActiveListItems };
+      }
+      return listItem;
+    });
+
     setListItems(updatedListItems);
     saveListItems(updatedListItems);
   };
+
 
   const renderItem: ListRenderItem<ListItemType> = ({ item, index }) => (
     <ListItem
@@ -182,30 +236,41 @@ export default function HomeScreen() {
       handleEditItem={handleEditItem}
       deleteListItem={deleteListItem}
       handleLongPress={handleLongPress}
+      flatListRef={flatListRef}
     />
   );
 
+
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Home</Text>
-        <TouchableOpacity onPress={addListItem}>
-          <Ionicons name="add-circle-outline" size={32} color="white" />
-        </TouchableOpacity>
-      </View>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter list item name"
-        placeholderTextColor="gray"
-        value={newListItemName}
-        onChangeText={setNewListItemName}
-        onSubmitEditing={addListItem}
-      />
-      <FlatList
-        data={listItems}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-      />
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={0}
+      >
+        <View style={styles.header}>
+          <Text style={styles.title}>{activeListItem.key || 'Home'}</Text>
+          <TouchableOpacity onPress={addListItem}>
+            <Ionicons name="add-circle-outline" size={32} color="white" />
+          </TouchableOpacity>
+        </View>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter list item name"
+          placeholderTextColor="gray"
+          value={newListItemName}
+          onChangeText={setNewListItemName}
+          onSubmitEditing={addListItem}
+        />
+        <FlatList
+          ref={flatListRef}
+          data={activeListItem.items}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={styles.flatListContentContainer}
+        />
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

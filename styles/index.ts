@@ -18,6 +18,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: COLORS.textColor,
+    flexShrink: 1,
   },
   input: {
     height: 40,
@@ -115,6 +116,12 @@ const styles = StyleSheet.create({
   normalText: {
     fontWeight: 'normal',
     color: 'white',
+  },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+  flatListContentContainer: {
+    paddingBottom: 100,
   },
 });
 
