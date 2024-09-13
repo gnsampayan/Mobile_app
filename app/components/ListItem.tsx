@@ -84,6 +84,9 @@ const ListItem: React.FC<ListItemProps> = ({
     };
 
     const handleEditPress = () => {
+        if (swipeableRef.current) {
+            swipeableRef.current.close(); // Close the swipeable item
+        }
         setIsEditing(true);
         setTimeout(() => {
             if (textInputRef.current) {
