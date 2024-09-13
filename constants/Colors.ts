@@ -24,3 +24,17 @@ export const Colors = {
     tabIconSelected: tintColorDark,
   },
 };
+
+export const COLORS = {
+  backgroundColor: 'black',
+  headerBackgroundColor: '#1a1a1a',
+  borderColor: 'gray',
+  textColor: 'black',
+  listItemTextColor: 'black',
+  listObjectTextColor: 'black',
+  nestedListItemTextColor: 'gray',
+  deleteButtonBackgroundColor: 'red',
+  deleteButtonTextColor: 'white',
+  editButtonBackgroundColor: 'black',
+  addIconColor: 'white',
+};

@@ -31,6 +31,15 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "f5275e31-b673-408b-ad73-10c4fbda501d"
+      }
+    },
+    "owner": "gnsampayan"
   }
 }
