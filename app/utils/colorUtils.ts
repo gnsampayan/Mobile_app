@@ -29,5 +29,11 @@ export const getColorForIndex = (index: number, isNested: boolean, layerIndex: n
   const colorIndex = Math.floor(adjustedIndex / ITEMS_PER_COLOR_STEP) % rainbowColors.length;
   const nextColorIndex = (colorIndex + 1) % rainbowColors.length;
   const factor = (adjustedIndex % ITEMS_PER_COLOR_STEP) / ITEMS_PER_COLOR_STEP;
+
+  // Ensure the very first item starts with red
+  if (index === 0 && layerIndex === 0) {
+    return `rgb(${rainbowColors[0].r},${rainbowColors[0].g},${rainbowColors[0].b})`;
+  }
+
   return interpolateColor(rainbowColors[colorIndex], rainbowColors[nextColorIndex], factor);
 };

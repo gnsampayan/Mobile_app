@@ -129,6 +129,7 @@ const ListItem: React.FC<ListItemProps> = ({
                         )}
                         onSwipeableOpen={handleSwipeableOpen}
                         onSwipeableWillOpen={() => { }}
+                        onSwipeableClose={() => setSwipedItemId(null)} // Reset swipedItemId on close
                     >
                         <View
                             style={[styles.listItem, item.isObject && styles.listObject, { backgroundColor: getColorForIndex(index, !!item.isObject, layerIndex.length), opacity }, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}
@@ -193,10 +194,20 @@ const ListItem: React.FC<ListItemProps> = ({
 const ListApp: React.FC = () => {
     const [swipedItemId, setSwipedItemId] = useState<string | null>(null);
 
+    const handleOutsidePress = () => {
+        if (swipedItemId) {
+            setSwipedItemId(null);
+        }
+    };
+
     return (
-        <SwipedItemContext.Provider value={{ swipedItemId, setSwipedItemId }}>
-            {/* Render your list of ListItem components here */}
-        </SwipedItemContext.Provider>
+        <TouchableWithoutFeedback onPress={handleOutsidePress}>
+            <View style={{ flex: 1 }}>
+                <SwipedItemContext.Provider value={{ swipedItemId, setSwipedItemId }}>
+                    {/* Render your list of ListItem components here */}
+                </SwipedItemContext.Provider>
+            </View>
+        </TouchableWithoutFeedback>
     );
 };
 
