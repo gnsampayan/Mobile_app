@@ -1,5 +1,15 @@
 import { useState, useRef } from 'react';
-import { SafeAreaView, View, Text, TouchableOpacity, TextInput, FlatList, Alert, KeyboardAvoidingView, Platform, } from 'react-native';
+import {
+  SafeAreaView,
+  View,
+  Text,
+  TouchableOpacity,
+  TextInput,
+  FlatList,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import ListItem from '../components/ListItem';
 import { useListItems } from '@/app/context/listItemsContext';
@@ -12,7 +22,12 @@ import { useActiveList } from '@/app/context/activeListContext';
 export default function HomeScreen() {
   const { activeList } = useActiveList();
   const { listItems, setListItems, saveListItems } = useListItems();
-  const activeListItem = listItems.find(item => item.id === activeList) || { id: 'default', key: 'default', items: [] };
+  const activeListItem =
+    listItems.find(item => item.id === activeList) || {
+      id: 'default',
+      key: 'default',
+      items: [],
+    };
   const [newListItemName, setNewListItemName] = useState('');
   const [nestedItemName, setNestedItemName] = useState<{ [key: string]: string }>({});
   const flatListRef = useRef<FlatList>(null);
@@ -62,6 +77,24 @@ export default function HomeScreen() {
     }
   };
 
+  const handleDeleteListItem = (id: string, key?: string) => {
+    Alert.alert(
+      'Delete',
+      'Are you sure you want to delete ' + key,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Yes',
+          onPress: () => deleteListItem(id),
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
   const deleteListItem = (id: string) => {
     const recursivelyDeleteNestedItems = (items: ListItemType[]): ListItemType[] => {
       return items
@@ -99,71 +132,6 @@ export default function HomeScreen() {
     };
 
     const updatedActiveListItems = recursivelyClearChildren(activeListItem.items || []);
-    const updatedListItems = listItems.map(listItem => {
-      if (listItem.id === activeList) {
-        return { ...listItem, items: updatedActiveListItems };
-      }
-      return listItem;
-    });
-
-    setListItems(updatedListItems);
-    saveListItems(updatedListItems);
-  };
-
-
-  const renderRightActions = (id: string) => (
-    <TouchableOpacity style={styles.editButton} onPress={() => handleEditItem(id, '')}>
-      <Ionicons name="pencil" size={20} color="white" />
-    </TouchableOpacity>
-  );
-
-  const handleLongPress = (item: ListItemType) => {
-    if (item.isObject) {
-      Alert.alert(
-        "Clear Children",
-        "Do you want to clear all children of this list object?",
-        [
-          {
-            text: "Cancel",
-            style: "cancel"
-          },
-          {
-            text: "Yes",
-            onPress: () => clearChildren(item)
-          }
-        ]
-      );
-    } else {
-      Alert.alert(
-        "Convert to List Object",
-        "Do you want to turn this list item into a list object?",
-        [
-          {
-            text: "Cancel",
-            style: "cancel"
-          },
-          {
-            text: "Yes",
-            onPress: () => convertToListObject(item)
-          }
-        ]
-      );
-    }
-  };
-
-  const convertToListObject = (item: ListItemType) => {
-    const recursivelyConvertToListObject = (items: ListItemType[]): ListItemType[] => {
-      return items.map(listItem => {
-        if (listItem.id === item.id) {
-          return { ...listItem, isObject: true, items: [], showDropdown: false };
-        } else if (listItem.items) {
-          return { ...listItem, items: recursivelyConvertToListObject(listItem.items) };
-        }
-        return listItem;
-      });
-    };
-
-    const updatedActiveListItems = recursivelyConvertToListObject(activeListItem.items || []);
     const updatedListItems = listItems.map(listItem => {
       if (listItem.id === activeList) {
         return { ...listItem, items: updatedActiveListItems };
@@ -222,6 +190,97 @@ export default function HomeScreen() {
     saveListItems(updatedListItems);
   };
 
+  const renderRightActions = (id: string) => (
+    <TouchableOpacity style={styles.editButton} onPress={() => handleEditItem(id, '')}>
+      <Ionicons name="pencil" size={20} color="white" />
+    </TouchableOpacity>
+  );
+
+  const handleLongPress = (item: ListItemType) => {
+    if (item.isObject) {
+      Alert.alert(
+        'Options',
+        'Select an option',
+        [
+          {
+            text: 'Clear contents',
+            onPress: () => clearChildren(item),
+          },
+          {
+            text: 'Revert to list item',
+            onPress: () => revertToListItem(item),
+          },
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+        ]
+      );
+    } else {
+      Alert.alert(
+        'Convert',
+        'Make ' + item.key + ' a recursive container?',
+        [
+          {
+            text: 'Confirm',
+            onPress: () => convertToListObject(item),
+          },
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+        ]
+      );
+    }
+  };
+
+  const convertToListObject = (item: ListItemType) => {
+    const recursivelyConvertToListObject = (items: ListItemType[]): ListItemType[] => {
+      return items.map(listItem => {
+        if (listItem.id === item.id) {
+          return { ...listItem, isObject: true, items: [], showDropdown: false };
+        } else if (listItem.items) {
+          return { ...listItem, items: recursivelyConvertToListObject(listItem.items) };
+        }
+        return listItem;
+      });
+    };
+
+    const updatedActiveListItems = recursivelyConvertToListObject(activeListItem.items || []);
+    const updatedListItems = listItems.map(listItem => {
+      if (listItem.id === activeList) {
+        return { ...listItem, items: updatedActiveListItems };
+      }
+      return listItem;
+    });
+
+    setListItems(updatedListItems);
+    saveListItems(updatedListItems);
+  };
+
+  const revertToListItem = (item: ListItemType) => {
+    const recursivelyRevertToListItem = (items: ListItemType[]): ListItemType[] => {
+      return items.map(listItem => {
+        if (listItem.id === item.id) {
+          return { ...listItem, isObject: false, items: undefined, showDropdown: undefined };
+        } else if (listItem.items) {
+          return { ...listItem, items: recursivelyRevertToListItem(listItem.items) };
+        }
+        return listItem;
+      });
+    };
+
+    const updatedActiveListItems = recursivelyRevertToListItem(activeListItem.items || []);
+    const updatedListItems = listItems.map(listItem => {
+      if (listItem.id === activeList) {
+        return { ...listItem, items: updatedActiveListItems };
+      }
+      return listItem;
+    });
+
+    setListItems(updatedListItems);
+    saveListItems(updatedListItems);
+  };
 
   const renderItem: ListRenderItem<ListItemType> = ({ item, index }) => (
     <ListItem
@@ -234,39 +293,41 @@ export default function HomeScreen() {
       renderRightActions={renderRightActions}
       layerIndex={[index]}
       handleEditItem={handleEditItem}
-      deleteListItem={deleteListItem}
+      handleDeleteListItem={handleDeleteListItem}
       handleLongPress={handleLongPress}
       flatListRef={flatListRef}
     />
   );
-
 
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={0}
       >
+
         <View style={styles.header}>
-          <Text style={styles.title}>{activeListItem.key || 'Home'}</Text>
-          <TouchableOpacity onPress={addListItem}>
-            <Ionicons name="add-circle-outline" size={32} color="white" />
+          <Text style={styles.title}>{activeListItem.key}</Text>
+        </View>
+        <View style={styles.mainInputContainer}>
+          <TextInput
+            style={styles.mainInput}
+            placeholder="Enter list item name"
+            placeholderTextColor="gray"
+            value={newListItemName}
+            onChangeText={setNewListItemName}
+            onSubmitEditing={addListItem}
+          />
+          <TouchableOpacity style={styles.mainAddButton} onPress={addListItem}>
+            <Ionicons name="add-circle-outline" size={20} color="white" />
+            <Text style={{ color: 'white', fontSize: 14 }}>{'add'}</Text>
           </TouchableOpacity>
         </View>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter list item name"
-          placeholderTextColor="gray"
-          value={newListItemName}
-          onChangeText={setNewListItemName}
-          onSubmitEditing={addListItem}
-        />
         <FlatList
           ref={flatListRef}
           data={activeListItem.items}
           renderItem={renderItem}
-          keyExtractor={(item) => item.id}
+          keyExtractor={item => item.id}
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={styles.flatListContentContainer}
         />

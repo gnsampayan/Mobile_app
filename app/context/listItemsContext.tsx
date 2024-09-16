@@ -22,7 +22,9 @@ export const ListItemsProvider = ({ children }: { children: ReactNode }) => {
             const storedListItems = await AsyncStorage.getItem('listItems');
             let parsedListItems: ListItem[] = storedListItems ? JSON.parse(storedListItems) : [];
             if (parsedListItems.length === 0) {
-                parsedListItems = [{ id: 'default', key: 'default', items: [] }];
+                parsedListItems = [{
+                    id: 'default', key: 'default', items: []
+                }];
             }
             setListItems(parsedListItems);
         } catch (error) {

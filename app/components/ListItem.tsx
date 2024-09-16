@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useContext, createContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, FlatList } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, FlatList, Dimensions, Animated } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Swipeable } from 'react-native-gesture-handler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -27,7 +27,7 @@ interface ListItemProps {
     renderRightActions: (id: string) => JSX.Element;
     layerIndex: number[];
     handleEditItem: (id: string, newText: string) => void;
-    deleteListItem: (id: string) => void;
+    handleDeleteListItem: (id: string, key?: string) => void;
     flatListRef: React.RefObject<FlatList<any>>;
 }
 
@@ -42,8 +42,8 @@ const ListItem: React.FC<ListItemProps> = ({
     renderRightActions,
     layerIndex,
     handleEditItem,
-    deleteListItem,
-    flatListRef,
+    handleDeleteListItem = () => { }, // Default parameter
+    flatListRef = React.createRef<FlatList<any>>() // Default parameter
 }) => {
     const [opacity, setOpacity] = useState(1);
     const [isEditing, setIsEditing] = useState(false);
@@ -122,10 +122,10 @@ const ListItem: React.FC<ListItemProps> = ({
     };
 
     const handleOutsidePress = () => {
-        if (swipedItemId && swipeableRef.current) {
+        if (swipeableRef.current) {
             swipeableRef.current.close();
-            setSwipedItemId(null);
         }
+        setSwipedItemId(null);
     };
 
     const handleSwipeableOpen = () => {
@@ -137,7 +137,7 @@ const ListItem: React.FC<ListItemProps> = ({
             if (flatListRef.current?.getNativeScrollRef() && inputRef.current) {
                 inputRef.current.measureLayout(
                     flatListRef.current.getNativeScrollRef() as any,
-                    (y) => {
+                    (_: number, y: number) => {
                         flatListRef.current?.scrollToOffset({
                             offset: y - 100,
                             animated: true,
@@ -157,16 +157,50 @@ const ListItem: React.FC<ListItemProps> = ({
                 <TouchableOpacity onPress={handlePress} onLongPress={() => handleLongPress(item)} activeOpacity={1}>
                     <Swipeable
                         ref={swipeableRef}
-                        renderRightActions={() => (
-                            <TouchableOpacity style={styles.deleteButton} onPress={() => deleteListItem(item.id)}>
-                                <Ionicons name="trash" size={20} color="white" />
-                            </TouchableOpacity>
-                        )}
-                        renderLeftActions={() => (
-                            <TouchableOpacity style={styles.editButton} onPress={handleEditPress}>
-                                <Ionicons name="pencil" size={20} color="white" />
-                            </TouchableOpacity>
-                        )}
+                        renderLeftActions={(progress) => {
+                            const opacity = progress.interpolate({
+                                inputRange: [0, 1],
+                                outputRange: [0, 1],
+                                extrapolate: 'clamp',
+                            });
+                            const left = progress.interpolate({
+                                inputRange: [0, 1],
+                                outputRange: [0, 100],
+                                extrapolate: 'clamp',
+                            });
+                            return (
+                                <View style={styles.editButtonParent}>
+                                    <Animated.View style={[styles.editButton, { opacity, transform: [{ translateX: left }] }]}>
+                                        <TouchableOpacity style={{ width: 'auto', display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 4 }} onPress={handleEditPress}>
+                                            <Ionicons name="pencil" size={20} color="black" />
+                                            <Text style={{ color: 'black', fontSize: 14 }}>{'edit'}</Text>
+                                        </TouchableOpacity>
+                                    </Animated.View>
+                                </View>
+                            );
+                        }}
+                        renderRightActions={(progress) => {
+                            const opacity = progress.interpolate({
+                                inputRange: [0, 1],
+                                outputRange: [0, 1],
+                                extrapolate: 'clamp',
+                            });
+                            const right = progress.interpolate({
+                                inputRange: [0, 1],
+                                outputRange: [0, -100],
+                                extrapolate: 'clamp',
+                            });
+                            return (
+                                <View style={styles.deleteButtonParent}>
+                                    <Animated.View style={[styles.deleteButton, { opacity, transform: [{ translateX: right }] }]}>
+                                        <TouchableOpacity style={{ width: 'auto', display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 4 }} onPress={() => handleDeleteListItem(item.id, item.key)}>
+                                            <Ionicons name="trash" size={20} color="white" />
+                                            <Text style={{ color: 'white', fontSize: 14 }}>{'delete'}</Text>
+                                        </TouchableOpacity>
+                                    </Animated.View>
+                                </View>
+                            );
+                        }}
                         onSwipeableOpen={handleSwipeableOpen}
                         onSwipeableWillOpen={() => { }}
                         onSwipeableClose={() => setSwipedItemId(null)}
@@ -192,9 +226,9 @@ const ListItem: React.FC<ListItemProps> = ({
                                     onFocus={() => scrollToInput(textInputRef)}
                                 />
                             ) : (
-                                <Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
                                     {item.isObject && (
-                                        <Text style={styles.normalText} onPress={() => toggleDropdown(item.id)}>
+                                        <Text style={styles.normalText}>
                                             [{item.items ? item.items.length : 0}]{' '}
                                         </Text>
                                     )}
@@ -203,12 +237,23 @@ const ListItem: React.FC<ListItemProps> = ({
                                             item.isObject ? styles.listObjectText : styles.listItemText,
                                             isStruckThrough && { textDecorationLine: 'line-through' },
                                         ]}
-                                        onPress={() => item.isObject && toggleDropdown(item.id)} // Add onPress to toggle dropdown
                                     >
                                         {item.key}
                                     </Text>
-                                </Text>
+                                </View>
                             )}
+                            {item.isObject && (() => {
+                                const color = item.showDropdown ? '#ffffff31' : 'transparent';
+                                return (
+                                    <TouchableOpacity style={[styles.dropdownButton, { borderColor: color }]} onPress={() => toggleDropdown(item.id)}>
+                                        <Ionicons
+                                            name={item.showDropdown ? 'chevron-up' : 'chevron-down'}
+                                            size={20}
+                                            color="white"
+                                        />
+                                    </TouchableOpacity>
+                                );
+                            })()}
                         </View>
                         {item.isObject && item.showDropdown && (
                             <View style={styles.dropdown}>
@@ -223,7 +268,10 @@ const ListItem: React.FC<ListItemProps> = ({
                                         ref={nestedInputRef}
                                         onFocus={() => scrollToInput(nestedInputRef)}
                                     />
-                                    <Ionicons name="add-circle-outline" size={20} color="white" onPress={() => addNestedListItem(item.id)} />
+                                    <TouchableOpacity style={styles.addButton} onPress={() => addNestedListItem(item.id)}>
+                                        <Ionicons name="add-circle-outline" size={20} color="white" />
+                                        <Text style={{ color: 'white', fontSize: 14 }}>{'add'}</Text>
+                                    </TouchableOpacity>
                                 </View>
                                 {item.items && item.items.map((nestedItem, nestedIndex) => (
                                     <ListItem
@@ -238,7 +286,7 @@ const ListItem: React.FC<ListItemProps> = ({
                                         renderRightActions={renderRightActions}
                                         layerIndex={[...layerIndex, nestedIndex]}
                                         handleEditItem={handleEditItem}
-                                        deleteListItem={deleteListItem}
+                                        handleDeleteListItem={handleDeleteListItem}
                                         flatListRef={flatListRef}
                                     />
                                 ))}

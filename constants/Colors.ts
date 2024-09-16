@@ -35,6 +35,6 @@ export const COLORS = {
   nestedListItemTextColor: 'white',
   deleteButtonBackgroundColor: 'red',
   deleteButtonTextColor: 'white',
-  editButtonBackgroundColor: 'grey',
+  editButtonBackgroundColor: 'white', 
   addIconColor: 'white',
 };
