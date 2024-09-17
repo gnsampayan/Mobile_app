@@ -18,16 +18,13 @@ import { ListItem as ListItemType } from '../types';
 import styles from '../../styles';
 import { ListRenderItem } from 'react-native';
 import { useActiveList } from '@/app/context/activeListContext';
+import { DEFAULT_LIST } from '../context/defaultList';
 
 export default function HomeScreen() {
   const { activeList } = useActiveList();
   const { listItems, setListItems, saveListItems } = useListItems();
   const activeListItem =
-    listItems.find(item => item.id === activeList) || {
-      id: 'default',
-      key: 'default',
-      items: [],
-    };
+    listItems.find(item => item.id === activeList) || DEFAULT_LIST;
   const [newListItemName, setNewListItemName] = useState('');
   const [nestedItemName, setNestedItemName] = useState<{ [key: string]: string }>({});
   const flatListRef = useRef<FlatList>(null);
@@ -164,6 +161,7 @@ export default function HomeScreen() {
     });
 
     setListItems(updatedListItems);
+    saveListItems(updatedListItems);
   };
 
   const handleEditItem = (id: string, newText: string) => {
@@ -203,11 +201,13 @@ export default function HomeScreen() {
         'Select an option',
         [
           {
-            text: 'Clear contents',
+            text: 'Erase Contents',
+            style: 'destructive',
             onPress: () => clearChildren(item),
           },
           {
-            text: 'Revert to list item',
+            text: 'Demote',
+            style: 'default',
             onPress: () => revertToListItem(item),
           },
           {
@@ -218,11 +218,11 @@ export default function HomeScreen() {
       );
     } else {
       Alert.alert(
-        'Convert',
-        'Make ' + item.key + ' a recursive container?',
+        'Promote to Container',
+        'Make "' + item.key + '" a recursive container?',
         [
           {
-            text: 'Confirm',
+            text: 'Promote',
             onPress: () => convertToListObject(item),
           },
           {
@@ -238,7 +238,7 @@ export default function HomeScreen() {
     const recursivelyConvertToListObject = (items: ListItemType[]): ListItemType[] => {
       return items.map(listItem => {
         if (listItem.id === item.id) {
-          return { ...listItem, isObject: true, items: [], showDropdown: false };
+          return { ...listItem, isObject: true, items: [], showDropdown: true };
         } else if (listItem.items) {
           return { ...listItem, items: recursivelyConvertToListObject(listItem.items) };
         }
@@ -320,7 +320,6 @@ export default function HomeScreen() {
           />
           <TouchableOpacity style={styles.mainAddButton} onPress={addListItem}>
             <Ionicons name="add-circle-outline" size={20} color="white" />
-            <Text style={{ color: 'white', fontSize: 14 }}>{'add'}</Text>
           </TouchableOpacity>
         </View>
         <FlatList

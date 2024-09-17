@@ -8,12 +8,15 @@ import { ThemedView } from '@/components/ThemedView';
 import { useListItems } from '@/app/context/listItemsContext';
 import { generateUUID } from '@/app/utils/uuid';
 import { useActiveList } from '@/app/context/activeListContext';
+import { DEFAULT_LIST } from '../context/defaultList';
+import { useNavigation } from 'expo-router';
 
 export default function OptionsScreen() {
   const screenWidth = Dimensions.get('window').width;
   const { listItems, setListItems, saveListItems } = useListItems();
   const [newListName, setNewListName] = useState('');
   const { activeList, setActiveList } = useActiveList();
+  const navigation = useNavigation();
 
   const addList = () => {
     if (newListName.trim()) {
@@ -34,7 +37,7 @@ export default function OptionsScreen() {
     setListItems(updatedListItems);
     saveListItems(updatedListItems);
     if (activeList === id) {
-      const newActiveList = updatedListItems.length > 0 ? updatedListItems[0].id : 'default';
+      const newActiveList = updatedListItems.length > 0 ? updatedListItems[0].id : DEFAULT_LIST.id;
       setActiveList(newActiveList);
     }
   };
@@ -61,19 +64,19 @@ export default function OptionsScreen() {
     <SafeAreaView style={styles.safeArea}>
       <ThemedView style={styles.container}>
         <View style={[styles.listsContainer, { width: screenWidth }]}>
-          <ThemedText type="title" style={styles.listsText}>List Options</ThemedText>
           <View style={styles.activeListSection}>
-            <ThemedText type="subtitle" style={styles.sectionTitle}>Active</ThemedText>
-            <View style={styles.activeContainer}>
-              <ThemedText>{listItems.find(item => item.id === activeList)?.key || 'default'}</ThemedText>
-            </View>
+            <ThemedText type="subtitle" style={styles.sectionTitle}>Displayed</ThemedText>
+            <TouchableOpacity style={styles.activeContainer} onPress={() => navigation.navigate('index' as never)}>
+              <ThemedText>{listItems.find(item => item.id === activeList)?.key || DEFAULT_LIST.key}</ThemedText>
+              <Ionicons name="tv-outline" size={24} color="white" />
+            </TouchableOpacity>
           </View>
           <View style={[styles.section, styles.librarySection]}>
-            <ThemedText type="subtitle" style={styles.sectionTitle}>Library</ThemedText>
+            <ThemedText type="subtitle" style={styles.sectionTitle}>Create List</ThemedText>
             <View style={styles.inputContainer}>
               <TextInput
                 style={styles.input}
-                placeholder="Create a new list"
+                placeholder="Enter name of new list"
                 placeholderTextColor="gray"
                 value={newListName}
                 onChangeText={setNewListName}
@@ -83,6 +86,7 @@ export default function OptionsScreen() {
                 <Ionicons name="add-circle-outline" size={32} color="black" />
               </TouchableOpacity>
             </View>
+            <ThemedText type="default" style={{ color: '#8f8f8f' }}>My List:</ThemedText>
             <FlatList
               style={styles.listContainer}
               data={listItems}
@@ -93,6 +97,7 @@ export default function OptionsScreen() {
                   onLongPress={() => handleLongPress(item.id)}
                 >
                   <ThemedText style={[styles.listItemText, item.id === activeList && styles.activeText]}>{item.key}</ThemedText>
+                  {item.id === activeList && <Ionicons name="checkmark-circle" size={24} color="green" />}
                 </TouchableOpacity>
               )}
               keyExtractor={(item) => item.id}
@@ -123,7 +128,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     backgroundColor: '#E0E0E0',
     paddingLeft: 20,
-    paddingTop: 20,
     flex: 1,
     paddingRight: 20,
     height: '100%',
@@ -152,6 +156,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 10,
+    marginTop: 10,
     width: '100%',
   },
   addButton: {
@@ -174,9 +179,10 @@ const styles = StyleSheet.create({
     marginTop: 10,
     borderRadius: 6,
     display: 'flex',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
     width: 'auto',
+    flexDirection: 'row',
   },
   input: {
     flex: 1,
@@ -193,14 +199,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#efefef',
     marginTop: 5,
     borderRadius: 6,
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   listItemText: {
     color: 'black',
   },
   activeList: {
-    backgroundColor: '#242424',
+    backgroundColor: '#d6d6d6',
   },
   activeText: {
-    color: 'white',
+    color: 'green',
   },
 });

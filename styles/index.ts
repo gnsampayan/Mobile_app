@@ -31,15 +31,14 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   mainInput: {
+    flex: 1,
     height: 40,
     borderColor: COLORS.borderColor,
     borderWidth: 1,
-    marginBottom: 16,
-    paddingHorizontal: 8,
     color: COLORS.textColor,
     backgroundColor: 'black',
     borderRadius: 6,
-    width: '80%',
+    paddingHorizontal: 10,
   },
   mainInputContainer: {
     display: 'flex',
@@ -47,6 +46,9 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: 10,
+    paddingRight: 10,
+    width: '100%',
+    marginBottom: 10,
   },
   inputContainer: {
     display: 'flex',
@@ -54,6 +56,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: 10,
+    marginRight: 10,
   },
   nestedInput: {
     flex: 1,
@@ -114,7 +117,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   dropdown: {
-    padding: 8,
+    paddingLeft: 10,
+    paddingTop: 10,
+    paddingBottom: 10,
     backgroundColor: COLORS.headerBackgroundColor,
     borderLeftWidth: 1,
     borderLeftColor: COLORS.borderColor,

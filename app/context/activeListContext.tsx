@@ -1,4 +1,5 @@
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import { saveActiveList, loadActiveList } from '../utils/activeListUtils';
 
 interface ActiveListContextType {
   activeList: string;
@@ -8,7 +9,23 @@ interface ActiveListContextType {
 const ActiveListContext = createContext<ActiveListContextType | undefined>(undefined);
 
 export const ActiveListProvider = ({ children }: { children: ReactNode }) => {
-  const [activeList, setActiveList] = useState('default');
+  const [activeList, setActiveListState] = useState('default');
+
+  useEffect(() => {
+    const fetchActiveList = async () => {
+      const savedActiveList = await loadActiveList();
+      if (savedActiveList) {
+        setActiveListState(savedActiveList);
+      }
+    };
+    fetchActiveList();
+  }, []);
+
+  const setActiveList = (id: string) => {
+    setActiveListState(id);
+    saveActiveList(id);
+  };
+
   return (
     <ActiveListContext.Provider value={{ activeList, setActiveList }}>
       {children}

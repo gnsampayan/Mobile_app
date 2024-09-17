@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect, ReactNode, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ListItem } from '../types';
+import { DEFAULT_LIST } from './defaultList';
 
 interface ListItemsContextType {
     listItems: ListItem[];
@@ -22,9 +23,7 @@ export const ListItemsProvider = ({ children }: { children: ReactNode }) => {
             const storedListItems = await AsyncStorage.getItem('listItems');
             let parsedListItems: ListItem[] = storedListItems ? JSON.parse(storedListItems) : [];
             if (parsedListItems.length === 0) {
-                parsedListItems = [{
-                    id: 'default', key: 'default', items: []
-                }];
+                parsedListItems = [DEFAULT_LIST];
             }
             setListItems(parsedListItems);
         } catch (error) {

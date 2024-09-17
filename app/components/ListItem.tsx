@@ -173,7 +173,7 @@ const ListItem: React.FC<ListItemProps> = ({
                                     <Animated.View style={[styles.editButton, { opacity, transform: [{ translateX: left }] }]}>
                                         <TouchableOpacity style={{ width: 'auto', display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 4 }} onPress={handleEditPress}>
                                             <Ionicons name="pencil" size={20} color="black" />
-                                            <Text style={{ color: 'black', fontSize: 14 }}>{'edit'}</Text>
+                                            <Text style={{ color: 'black', fontSize: 14 }}>{'rename'}</Text>
                                         </TouchableOpacity>
                                     </Animated.View>
                                 </View>
@@ -270,7 +270,6 @@ const ListItem: React.FC<ListItemProps> = ({
                                     />
                                     <TouchableOpacity style={styles.addButton} onPress={() => addNestedListItem(item.id)}>
                                         <Ionicons name="add-circle-outline" size={20} color="white" />
-                                        <Text style={{ color: 'white', fontSize: 14 }}>{'add'}</Text>
                                     </TouchableOpacity>
                                 </View>
                                 {item.items && item.items.map((nestedItem, nestedIndex) => (
