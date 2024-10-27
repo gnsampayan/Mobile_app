@@ -33,9 +33,26 @@ export default function OptionsScreen() {
   };
 
   const deleteList = (id: string) => {
-    const updatedListItems = listItems.filter(item => item.id !== id);
+    // Check if the list to be deleted is the default list and the only list
+    if (id === DEFAULT_LIST.id && listItems.length === 1) {
+      Alert.alert(
+        "Cannot Delete",
+        "You cannot delete the default list when it's the only list available. Please create a new list before deleting.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
+    let updatedListItems = listItems.filter(item => item.id !== id);
+
+    // Check if the updated list is empty
+    if (updatedListItems.length === 0) {
+      updatedListItems = [DEFAULT_LIST]; // Add the default list
+    }
+
     setListItems(updatedListItems);
     saveListItems(updatedListItems);
+
     if (activeList === id) {
       const newActiveList = updatedListItems.length > 0 ? updatedListItems[0].id : DEFAULT_LIST.id;
       setActiveList(newActiveList);
