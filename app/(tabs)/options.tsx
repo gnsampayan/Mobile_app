@@ -84,7 +84,7 @@ export default function OptionsScreen() {
           <View style={styles.activeListSection}>
             <ThemedText type="subtitle" style={styles.sectionTitle}>Displayed</ThemedText>
             <TouchableOpacity style={styles.activeContainer} onPress={() => navigation.navigate('index' as never)}>
-              <ThemedText>{listItems.find(item => item.id === activeList)?.key || DEFAULT_LIST.key}</ThemedText>
+              <Text style={{ color: 'cyan' }}>{listItems.find(item => item.id === activeList)?.key || DEFAULT_LIST.key}</Text>
               <Ionicons name="tv-outline" size={24} color="white" />
             </TouchableOpacity>
           </View>
