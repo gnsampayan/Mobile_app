@@ -305,13 +305,6 @@ export default function HomeScreen() {
     />
   );
 
-  const [isInputActive, setIsInputActive] = useState(false);
-
-  const dismissKeyboard = () => {
-    Keyboard.dismiss();
-    setIsInputActive(false);
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
@@ -329,36 +322,20 @@ export default function HomeScreen() {
             value={newListItemName}
             onChangeText={setNewListItemName}
             onSubmitEditing={addListItem}
-            onFocus={() => setIsInputActive(true)}
           />
           <TouchableOpacity style={styles.mainAddButton} onPress={addListItem}>
             <Ionicons name="add-circle-outline" size={20} color="white" />
+
           </TouchableOpacity>
         </View>
-        <View style={{ flex: 1 }}>
-          <FlatList
-            ref={flatListRef}
-            data={activeListItem.items}
-            renderItem={renderItem}
-            keyExtractor={item => item.id}
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={styles.flatListContentContainer}
-          />
-          {isInputActive && (
-            <TouchableOpacity
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: 'rgba(0,0,0,0.5)',
-              }}
-              onPress={dismissKeyboard}
-              activeOpacity={1}
-            />
-          )}
-        </View>
+        <FlatList
+          ref={flatListRef}
+          data={activeListItem.items}
+          renderItem={renderItem}
+          keyExtractor={item => item.id}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={styles.flatListContentContainer}
+        />
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

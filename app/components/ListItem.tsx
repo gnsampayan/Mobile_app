@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useContext, createContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, FlatList, Dimensions, Animated } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, FlatList, Dimensions, Animated, Keyboard } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Swipeable } from 'react-native-gesture-handler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -119,6 +119,11 @@ const ListItem: React.FC<ListItemProps> = ({
     };
 
     const handlePress = async () => {
+        if (Keyboard.isVisible()) {
+            Keyboard.dismiss();
+            return;
+        }
+
         const newIsStruckThrough = !isStruckThrough;
         setIsStruckThrough(newIsStruckThrough);
         const newBackgroundColor = newIsStruckThrough ? 'rgb(56,56,56)' : getColorForIndex(index, !!item.isObject, layerIndex.length);
