@@ -9,6 +9,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Keyboard,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import ListItem from '../components/ListItem';
@@ -234,11 +235,16 @@ export default function HomeScreen() {
     }
   };
 
-  const convertToListObject = (item: ListItemType) => {
+  const convertToListObject = async (item: ListItemType) => {
     const recursivelyConvertToListObject = (items: ListItemType[]): ListItemType[] => {
       return items.map(listItem => {
         if (listItem.id === item.id) {
-          return { ...listItem, isObject: true, items: [], showDropdown: true };
+          return {
+            ...listItem,
+            isObject: true,
+            items: [],
+            showDropdown: true
+          };
         } else if (listItem.items) {
           return { ...listItem, items: recursivelyConvertToListObject(listItem.items) };
         }
@@ -299,13 +305,19 @@ export default function HomeScreen() {
     />
   );
 
+  const [isInputActive, setIsInputActive] = useState(false);
+
+  const dismissKeyboard = () => {
+    Keyboard.dismiss();
+    setIsInputActive(false);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-
         <View style={styles.header}>
           <Text style={styles.title}>{activeListItem.key}</Text>
         </View>
@@ -317,19 +329,36 @@ export default function HomeScreen() {
             value={newListItemName}
             onChangeText={setNewListItemName}
             onSubmitEditing={addListItem}
+            onFocus={() => setIsInputActive(true)}
           />
           <TouchableOpacity style={styles.mainAddButton} onPress={addListItem}>
             <Ionicons name="add-circle-outline" size={20} color="white" />
           </TouchableOpacity>
         </View>
-        <FlatList
-          ref={flatListRef}
-          data={activeListItem.items}
-          renderItem={renderItem}
-          keyExtractor={item => item.id}
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={styles.flatListContentContainer}
-        />
+        <View style={{ flex: 1 }}>
+          <FlatList
+            ref={flatListRef}
+            data={activeListItem.items}
+            renderItem={renderItem}
+            keyExtractor={item => item.id}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={styles.flatListContentContainer}
+          />
+          {isInputActive && (
+            <TouchableOpacity
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: 'rgba(0,0,0,0.5)',
+              }}
+              onPress={dismissKeyboard}
+              activeOpacity={1}
+            />
+          )}
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

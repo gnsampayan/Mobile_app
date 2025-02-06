@@ -2,7 +2,6 @@ import { Tabs } from 'expo-router';
 import React from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-import { TabBarIcon } from '@/components/navigation/TabBarIcon';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
@@ -20,7 +19,7 @@ export default function TabLayout() {
         options={{
           title: 'Display',
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'tv' : 'tv-outline'} color={color} />
+            <Ionicons TabBarIcon name={focused ? 'tv' : 'tv-outline'} color={color} size={24} />
           ),
         }}
       />

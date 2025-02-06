@@ -32,14 +32,14 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <ListItemsProvider>
-          <ActiveListProvider>
+        <ActiveListProvider>
+          <ListItemsProvider>
             <Stack>
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="+not-found" />
             </Stack>
-          </ActiveListProvider>
-        </ListItemsProvider>
+          </ListItemsProvider>
+        </ActiveListProvider>
       </ThemeProvider>
     </GestureHandlerRootView>
   );

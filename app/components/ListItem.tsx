@@ -56,6 +56,22 @@ const ListItem: React.FC<ListItemProps> = ({
 
     const { swipedItemId, setSwipedItemId } = useContext(SwipedItemContext);
 
+    // Update background color when relevant props change
+    useEffect(() => {
+        console.log('Background color updating:', {
+            index,
+            isObject: item.isObject,
+            layerLength: layerIndex.length,
+            isStruckThrough
+        });
+
+        if (!isStruckThrough) {
+            const newColor = getColorForIndex(index, !!item.isObject, layerIndex.length);
+            console.log('New color:', newColor);
+            setBackgroundColor(newColor);
+        }
+    }, [index, item.isObject, layerIndex.length, isStruckThrough]);
+
     useEffect(() => {
         const loadState = async () => {
             try {
@@ -208,7 +224,6 @@ const ListItem: React.FC<ListItemProps> = ({
                         <View
                             style={[
                                 styles.listItem,
-                                item.isObject && styles.listObject,
                                 { backgroundColor, opacity },
                                 { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
                             ]}

@@ -103,9 +103,6 @@ const styles = StyleSheet.create({
     fontWeight: 'normal',
     fontSize: 16,
   },
-  listObject: {
-    backgroundColor: 'inherit',
-  },
   listObjectText: { 
     color: COLORS.listObjectTextColor,
     fontWeight: 'bold',

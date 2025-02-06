@@ -4,4 +4,5 @@ export interface ListItem {
   isObject?: boolean;
   items?: ListItem[];
   showDropdown?: boolean;
+  backgroundColor?: string;
 }
