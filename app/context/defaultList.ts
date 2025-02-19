@@ -14,3 +14,5 @@ export const DEFAULT_LIST = {
     },
   ],
 };
+
+export default DEFAULT_LIST;

@@ -37,3 +37,12 @@ export const getColorForIndex = (index: number, isNested: boolean, layerIndex: n
 
   return interpolateColor(rainbowColors[colorIndex], rainbowColors[nextColorIndex], factor);
 };
+
+// Add default export for Expo Router
+const colorUtils = {
+  getColorForIndex,
+  interpolateColor,
+  rainbowColors,
+};
+
+export default colorUtils;

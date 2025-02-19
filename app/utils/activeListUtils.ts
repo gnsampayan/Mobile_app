@@ -17,3 +17,11 @@ export const loadActiveList = async (): Promise<string | null> => {
     return null;
   }
 };
+
+// Add default export for Expo Router
+const activeListUtils = {
+  saveActiveList,
+  loadActiveList,
+};
+
+export default activeListUtils;

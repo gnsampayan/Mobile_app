@@ -53,3 +53,6 @@ export const useListItems = () => {
     }
     return context;
 };
+
+// Default export for Expo Router
+export default ListItemsProvider;

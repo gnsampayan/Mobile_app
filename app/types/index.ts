@@ -6,3 +6,5 @@ export interface ListItem {
   showDropdown?: boolean;
   backgroundColor?: string;
 }
+
+export default ListItem;

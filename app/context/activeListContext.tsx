@@ -40,3 +40,5 @@ export const useActiveList = () => {
   }
   return context;
 };
+
+export default ActiveListProvider;
