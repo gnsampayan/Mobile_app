@@ -22,7 +22,7 @@ interface ListItemProps {
     nestedItemName: { [key: string]: string };
     setNestedItemName: (name: { [key: string]: string }) => void;
     addNestedListItem: (parentId: string) => void;
-    handleLongPress: (item: ListItemType) => void;
+    handlePromoteDemote: (item: ListItemType) => void;
     toggleDropdown: (id: string) => void;
     renderRightActions: (id: string) => JSX.Element;
     layerIndex: number[];
@@ -37,7 +37,7 @@ const ListItem: React.FC<ListItemProps> = ({
     nestedItemName,
     setNestedItemName,
     addNestedListItem,
-    handleLongPress,
+    handlePromoteDemote,
     toggleDropdown,
     renderRightActions,
     layerIndex,
@@ -167,7 +167,7 @@ const ListItem: React.FC<ListItemProps> = ({
     return (
         <TouchableWithoutFeedback onPress={handleOutsidePress}>
             <View>
-                <TouchableOpacity onPress={handlePress} onLongPress={() => handleLongPress(item)} activeOpacity={1}>
+                <TouchableOpacity onPress={handlePress} onLongPress={() => handleDeleteListItem(item.id, item.key)} activeOpacity={1}>
                     <Swipeable
                         ref={swipeableRef}
                         renderLeftActions={(progress) => {
@@ -204,13 +204,13 @@ const ListItem: React.FC<ListItemProps> = ({
                                 extrapolate: 'clamp',
                             });
                             return (
-                                <View style={styles.deleteButtonParent}>
-                                    <Animated.View style={[styles.deleteButton, { opacity, transform: [{ translateX: right }] }]}>
-                                        <TouchableOpacity style={{ width: 'auto', display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 4 }} onPress={() => handleDeleteListItem(item.id, item.key)}>
-                                            <Ionicons name="trash" size={20} color="white" />
-                                            <Text style={{ color: 'white', fontSize: 14 }}>{'delete'}</Text>
-                                        </TouchableOpacity>
-                                    </Animated.View>
+                                <View style={styles.promoteButtonParent}>
+                                    <TouchableOpacity style={{ width: 'auto', display: 'flex', alignItems: 'center', gap: 4 }} onPress={() => handlePromoteDemote(item)}>
+                                        <Animated.View style={[styles.promoteButton, { opacity, transform: [{ translateX: right }] }]}>
+                                            <Ionicons name="folder-open" size={20} color="white" />
+                                            <Text style={[styles.promoteButtonText, { color: 'white', fontSize: 14 }]}>{item.isObject ? 'options' : 'promote'}</Text>
+                                        </Animated.View>
+                                    </TouchableOpacity>
                                 </View>
                             );
                         }}
@@ -292,7 +292,7 @@ const ListItem: React.FC<ListItemProps> = ({
                                         nestedItemName={nestedItemName}
                                         setNestedItemName={setNestedItemName}
                                         addNestedListItem={addNestedListItem}
-                                        handleLongPress={handleLongPress}
+                                        handlePromoteDemote={handlePromoteDemote}
                                         toggleDropdown={toggleDropdown}
                                         renderRightActions={renderRightActions}
                                         layerIndex={[...layerIndex, nestedIndex]}

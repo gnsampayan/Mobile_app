@@ -33,8 +33,8 @@ export const COLORS = {
   listItemTextColor: 'white',
   listObjectTextColor: 'white',
   nestedListItemTextColor: 'white',
-  deleteButtonBackgroundColor: 'red',
-  deleteButtonTextColor: 'white',
+  promoteButtonBackgroundColor: 'blue',
+  promoteButtonTextColor: 'white',
   editButtonBackgroundColor: 'white', 
   addIconColor: 'white',
 };

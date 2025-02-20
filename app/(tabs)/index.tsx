@@ -85,7 +85,8 @@ export default function HomeScreen() {
           style: 'cancel',
         },
         {
-          text: 'Yes',
+          text: 'Delete',
+          style: 'destructive',
           onPress: () => deleteListItem(id),
         },
       ],
@@ -195,7 +196,7 @@ export default function HomeScreen() {
     </TouchableOpacity>
   );
 
-  const handleLongPress = (item: ListItemType) => {
+  const handlePromoteDemote = (item: ListItemType) => {
     if (item.isObject) {
       Alert.alert(
         'Options',
@@ -300,7 +301,7 @@ export default function HomeScreen() {
       layerIndex={[index]}
       handleEditItem={handleEditItem}
       handleDeleteListItem={handleDeleteListItem}
-      handleLongPress={handleLongPress}
+      handlePromoteDemote={handlePromoteDemote}
       flatListRef={flatListRef}
     />
   );

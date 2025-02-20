@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORS.borderColor,
   },
-  deleteButtonParent: {
+  promoteButtonParent: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
@@ -136,18 +136,20 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
     paddingLeft: 6,
   },
-  deleteButton: {
-    backgroundColor: COLORS.deleteButtonBackgroundColor,
+  promoteButton: {
+    backgroundColor: COLORS.promoteButtonBackgroundColor,
     justifyContent: 'center',
     alignItems: 'center',
     height: '100%',
     display: 'flex',
     width: 94,
     left: 100,
+    flexDirection: 'row',
     borderRadius: 6,
+    gap: 4,
   },
-  deleteButtonText: {
-    color: COLORS.deleteButtonTextColor,
+  promoteButtonText: {
+    color: COLORS.promoteButtonTextColor,
     fontWeight: 'bold',
   },
   addIcon: {
